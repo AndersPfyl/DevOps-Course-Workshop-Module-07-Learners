@@ -41,24 +41,38 @@ jobs:
   #         push: true
   #         tags: anderspfyl/dotnettemplate:latest,anderspfyl/dotnettemplate:${{ github.sha }}
 
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   if: github.ref == 'refs/heads/main'
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v2
+  #     - name: Build, Push and Release a Docker container to Heroku. # Your custom step name
+  #       uses: gonuit/heroku-docker-deploy@v1.3.2 # GitHub action name (leave it as it is).
+  #       with:
+  #         email: ${{ secrets.HEROKU_EMAIL }}
+  #         heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+  #         heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
+  #         dockerfile_directory: ./
+  #         dockerfile_name: Dockerfile.app
+  #         docker_options: "--target production"
+  #         process_type: web
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main'
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Build, Push and Release a Docker container to Heroku. # Your custom step name
-        uses: gonuit/heroku-docker-deploy@v1.3.2 # GitHub action name (leave it as it is).
+      - uses: actions/checkout@v2
+      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
         with:
-          email: ${{ secrets.HEROKU_EMAIL }}
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
-          dockerfile_directory: ./
-          dockerfile_name: Dockerfile.app
-          docker_options: "--target production"
-          process_type: web
-          
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: true
+          docker_build_args: |
+            --target production
+            -f Dockerfile.app
    
 
   
