@@ -6,4 +6,37 @@ jobs:
     name: Build and test
     runs-on: ubuntu-latest      # Sets the build environment a machine with the latest Ubuntu installed
     steps:
-    - uses: actions/checkout@v2 # Adds a step to checkout the repository code
+      - uses: actions/checkout@v2
+
+      - run: npm i
+        working-directory: ./DotnetTemplate.Web
+      - run: dotnet build
+      - run: dotnet test
+      - run: npm run build
+        working-directory: ./DotnetTemplate.Web
+      - run: npm run lint
+        working-directory: ./DotnetTemplate.Web
+      - run: npm t
+        working-directory: ./DotnetTemplate.Web
+
+  deploy:   
+    name: Deploy
+    runs-on: ubuntu-latest      # Sets the build environment a machine with the latest Ubuntu installed
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2 
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile.app
+          push: true
+          tags: anderspfyl/dotnettemplate:latest,anderspfyl/dotnettemplate:${{ github.sha }}
